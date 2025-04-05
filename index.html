@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Chennai Metro Map</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.27/"></script>
+  <style>
+    html, body, #viewDiv {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/Graphic",
+      "esri/layers/GraphicsLayer",
+      "esri/widgets/BasemapGallery",
+      "esri/widgets/Expand"
+    ], function(Map, MapView, Graphic, GraphicsLayer, BasemapGallery, Expand) {
+
+      const map = new Map({
+        basemap: "streets-navigation-vector"
+      });
+
+      const view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center: [80.2707, 13.0827], // Chennai
+        zoom: 12
+      });
+
+      const graphicsLayer = new GraphicsLayer();
+      map.add(graphicsLayer);
+
+      // Metro stations with lat/lon
+      const metroStations = [
+        { name: "Washermanpet", lat: 13.117, lon: 80.289 },
+        { name: "Egmore", lat: 13.074, lon: 80.261 },
+        { name: "Central", lat: 13.083, lon: 80.275 },
+        { name: "Government Estate", lat: 13.062, lon: 80.268 },
+        { name: "LIC", lat: 13.06, lon: 80.27 },
+        { name: "AG-DMS", lat: 13.044, lon: 80.247 },
+        { name: "Guindy", lat: 13.006, lon: 80.218 }
+      ];
+
+      const stationSymbol = {
+        type: "picture-marker",
+        url: "https://cdn-icons-png.flaticon.com/512/684/684908.png", // metro icon
+        width: "24px",
+        height: "24px"
+      };
+
+      const polylineSymbol = {
+        type: "simple-line",
+        color: "#1F75FE", // pink
+        width: 3
+      };
+
+      const polylinePoints = [];
+
+      metroStations.forEach(station => {
+        const point = {
+          type: "point",
+          longitude: station.lon,
+          latitude: station.lat
+        };
+
+        const pointGraphic = new Graphic({
+          geometry: point,
+          symbol: stationSymbol,
+          attributes: { name: station.name },
+          popupTemplate: {
+            title: "{name}"
+          }
+        });
+
+        graphicsLayer.add(pointGraphic);
+        polylinePoints.push([station.lon, station.lat]);
+      });
+
+      const polyline = {
+        type: "polyline",
+        paths: [polylinePoints]
+      };
+
+      const lineGraphic = new Graphic({
+        geometry: polyline,
+        symbol: polylineSymbol
+      });
+
+      graphicsLayer.add(lineGraphic);
+
+      // Add basemap gallery
+      const basemapGallery = new BasemapGallery({ view: view });
+      const bgExpand = new Expand({
+        view: view,
+        content: basemapGallery
+      });
+      view.ui.add(bgExpand, "top-right");
+    });
+  </script>
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
